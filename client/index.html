@@ -1,0 +1,251 @@
+<!doctype html>
+<html ng-app="crosstabulation">
+<head>
+    <title>Cross Tabulation</title>
+    <!-- START : Vendor css -->
+    <link rel="stylesheet" href="cdn/bootstrap/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="cdn/fontawesome/css/font-awesome.min.css"/>
+    <link rel="stylesheet" href="cdn/angular-toastr/angular-toastr.min.css"/>
+    <!-- END : Vendor css -->
+
+    <!-- START : Custom css -->
+    <link rel="stylesheet" href="css/custom.css"/>
+    <!-- END : Custom css -->
+</head>
+<body ng-controller="MainController as main" data-spy="scroll" data-target=".navbar" data-offset="50">
+<!--[if lt IE 7]>
+<p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade
+    your browser</a> to improve your experience.</p>
+<![endif]-->
+
+<!-- START : Navigation -->
+<nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#toggle-menu">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="javascript:void(0);"><strong>Cross Tabulation</strong></a>
+        </div>
+        <div class="collapse navbar-collapse" id="toggle-menu">
+            <ul class="nav navbar-nav navbar-right">
+                <li class="active"><a href="#upload-file" ng-click="main.fnScrollTo('upload-file')">Home</a></li>
+                <li><a href="#read-csv" ng-click="main.fnScrollTo('read-csv')">Read CSV</a></li>
+                <li><a href="#cross-tab" ng-click="main.fnScrollTo('cross-tab')">Cross Tabulation</a></li>
+                <li><a href="#result" ng-click="main.fnScrollTo('result')">Result</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<!-- END : Navigation -->
+<div class="page-wrapper" ng-init="main.fnInitMain()">
+
+    <!-- START : File Upload -->
+    <section class="upload-file" id="upload-file" page-height>
+        <div class="container min-height-inherit">
+            <div class="row min-height-inherit">
+                <div class="panel panel-primary min-height-inherit">
+                    <div class="panel-heading">File Upload</div>
+                    <div class="panel-body">
+                        <form name="uploadForm" novalidate>
+                            <div class="form-group">
+                                <label for="fileUpload">Upload CSV:</label>
+                                <input type="file" id="fileUpload" class="form-control" name="fileUpload"
+                                       file-model="main.fileUpload"/>
+                            </div>
+                            <button class="btn btn-primary" ng-click="main.fnSaveFile(main.fileUpload);">Upload
+                            </button>
+                        </form>
+                        <br/>
+
+                        <div class="panel panel-default">
+                            <div class="panel-heading">Files</div>
+                            <div class="panel-body position-relative">
+                                <img class="loading" src="images/loading.gif" ng-if="!main.isFilesLoad">
+                                <div class="table-responsive" ng-if="main.isFilesLoad">
+                                    <table class="table table-bordered">
+                                        <tr>
+                                            <td><strong>Name</strong></td>
+                                            <td><strong>Action</strong></td>
+                                        </tr>
+                                        <tr ng-if="!main.filesArr.length">
+                                            <td colspan="2" class="text-center"><strong>Files not available.</strong>
+                                            </td>
+                                        </tr>
+                                        <tr ng-repeat="file in main.filesArr">
+                                            <td ng-bind="file"></td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <button class="btn btn-primary" ng-click="main.fnGetCSV(file);"><i
+                                                            class="fa fa-eye"></i></button>
+                                                    <button class="btn btn-danger" ng-click="main.fnRemoveFile(file);">
+                                                        <i class="fa fa-trash"></i></button>
+                                                </div>
+
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- END : File Upload -->
+
+    <!-- START : READ CSV -->
+    <section class="read-csv" id="read-csv" page-height>
+        <div class="container min-height-inherit">
+            <div class="row min-height-inherit">
+                <div class="panel panel-primary min-height-inherit">
+                    <div class="panel-heading">Read CSV</div>
+                    <div class="panel-body">
+                        <img class="loading" src="images/loading.gif" ng-if="!main.isReadCSV">
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <tr ng-if="!main.csvArr.length && main.isReadCSV">
+                                    <td colspan="2" class="text-center"><strong>Data not available. Please click on
+                                        "view" button to see csv data.</strong></td>
+                                </tr>
+                                <tr>
+                                    <td ng-repeat="(key, value) in main.csvArr[0]"><strong ng-bind="key"></strong></td>
+                                </tr>
+                                <tr ng-repeat="csv in main.csvArr">
+                                    <td ng-repeat="(key, value) in csv" ng-bind="value"></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- END : READ CSV -->
+
+    <!-- START : Cross Tabulation -->
+    <section class="cross-tab" id="cross-tab" page-height>
+        <div class="container min-height-inherit">
+            <div class="row min-height-inherit">
+                <div class="panel panel-primary min-height-inherit">
+                    <div class="panel-heading">Cross Tabulation</div>
+                    <div class="panel-body">
+                        <form name="crossTab" role="form">
+                            <div class="form-group">
+                                <label for="horizontally">Select one option that should be tabbed horizontally:</label>
+                                <select class="form-control" id="horizontally"
+                                        ng-model="main.ctObj.horizontally.name"
+                                        ng-change="main.fnChangeCT()"
+                                        ng-options="item as item for item in main.crossTabOptions">
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="vertically">Select one option that should be tabbed vertically:</label>
+                                <select class="form-control" id="vertically"
+                                        ng-model="main.ctObj.vertically.name"
+                                        ng-change="main.fnChangeCT()"
+                                        ng-options="item as item for item in main.crossTabOptions">
+                                </select>
+                            </div>
+                            <button class="btn btn-primary" ng-click="main.fnCreateCTReportCols(main.csvArr)"
+                                    ng-disabled="!main.csvArr.length ||
+                                    main.ctObj.horizontally.name === main.ctObj.vertically.name">Apply</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- END : Cross Tabulation -->
+
+    <!-- START : Result -->
+    <section class="result" id="result" page-height>
+        <div class="container min-height-inherit">
+            <div class="row min-height-inherit">
+                <div class="panel panel-primary min-height-inherit">
+                    <div class="panel-heading">Result</div>
+                    <div class="panel-body">
+                        <div class="text-center" ng-if="!main.isReportDisplay">
+                            <strong>Result not available. Please click on
+                                "Apply" button to see result.</strong>
+                        </div>
+                        <div class="table-responsive" ng-if="main.isReportDisplay">
+                            <table class="table table-bordered text-center text-capitalize">
+                                <tr>
+                                    <td></td>
+                                    <td colspan="3">
+                                        <strong ng-bind="main.ctObj.horizontally.name"></strong>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td></td>
+                                    <td ng-repeat="col in main.ctObj.horizontally.cols" ng-bind="col"></td>
+                                    <td><strong>Total</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong ng-bind="main.ctObj.vertically.name"></strong>
+                                    </td>
+                                    <td ng-repeat="col in main.ctObj.horizontally.cols"></td>
+                                    <td></td>
+                                </tr>
+                                <tr ng-repeat="vCol in main.ctObj.vertically.cols">
+                                    <td ng-bind="vCol"></td>
+                                    <td ng-repeat="hCol in main.ctObj.horizontally.cols">{{main.fnReturnColWiseTotal(main.csvArr, vCol, hCol)}}</td>
+                                    <td>{{main.fnReturnVerticalTotal(vCol)}}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Total</strong></td>
+                                    <td ng-repeat="hCol in main.ctObj.horizontally.cols">{{main.fnReturnHorizontalTotal(hCol)}}</td>
+                                    <td>{{main.fnReturnTotal()}}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- END : Result -->
+</div>
+
+
+<!-- Google Analytics: change UA-XXXXX-X to be your site's ID -->
+<script>
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+
+    ga('create', 'UA-XXXXX-X');
+    ga('send', 'pageview');
+</script>
+
+<!-- START : Vendor js -->
+<script src="cdn/jquery/jquery.min.js"></script>
+<script src="cdn/bootstrap/js/bootstrap.min.js"></script>
+<script src="cdn/angular/angular.min.js"></script>
+<script src="cdn/angular-toastr/angular-toastr.tpls.min.js"></script>
+<!-- END : Vendor js -->
+
+<!-- START : Custom js -->
+<script type="text/javascript" src="js/index.module.js"></script>
+<script type="text/javascript" src="js/index.config.js"></script>
+<script type="text/javascript" src="js/directives/fileModel.directive.js"></script>
+<script type="text/javascript" src="js/directives/page.height.directive.js"></script>
+<script type="text/javascript" src="js/services/files.service.js"></script>
+<script type="text/javascript" src="js/controllers/main.controller.js"></script>
+<!-- END : Custom js -->
+</body>
+</html>

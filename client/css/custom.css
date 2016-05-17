@@ -1,0 +1,16 @@
+/**
+ * Created by Nirmal Solanki on 5/15/2016.
+ */
+div.page-wrapper, div.container {
+    padding-top:50px;
+}
+
+.min-height-inherit{
+    min-height: inherit;
+}
+
+img.loading{
+    position: relative;
+    left: 50%;
+    margin-left: -32px;
+}
