@@ -1,14 +1,13 @@
-/**
- * Created by Nirmal Solanki on 5/15/2016.
- */
-var express = require("express"),
-    path = require('path'),
+var express = require('express');
+var app = express();
+var path     = require('path'),
     multer = require('multer'),
     fs = require('fs'),
     csv = require("fast-csv");
-var app = express();
-app.use(express.static(path.join(__dirname, 'client')));
 
+app.set('port', (process.env.PORT || 5000));
+
+app.use(express.static(path.join(__dirname, 'client')));
 function fileId() {
     function s4() {
         return Math.floor((1 + Math.random()) * 0x10000)
@@ -90,6 +89,8 @@ app.get('/api/files/csv/:fileName', function (req, res) {
 });
 /*--- END : Get CSV File Data ------*/
 
-app.listen(3030, function () {
-    console.log("Working on port 3030");
+app.listen(app.get('port'), function() {
+  console.log('Node app is running on port', app.get('port'));
 });
+
+
